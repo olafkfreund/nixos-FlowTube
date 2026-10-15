@@ -31,12 +31,16 @@
         in
         {
           package = flow;
-          # Passes if the app is still running after 20s under Xvfb (timeout exits 124).
+          # Passes if the app survives 20s under Xvfb and the frontend rendered: upstream
+          # writes startup_sentinel before the webview and deletes it once React mounts.
           smoke = pkgs.runCommand "flow-desktop-smoke" { nativeBuildInputs = [ pkgs.xvfb-run ]; } ''
             export HOME=$TMPDIR XDG_RUNTIME_DIR=$TMPDIR SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
             rc=0; timeout 20 xvfb-run -a ${flow}/bin/flow > log 2>&1 || rc=$?
             cat log
-            test "$rc" -eq 124 && touch $out
+            test "$rc" -eq 124
+            test ! -e $HOME/.local/share/io.github.aedev.flow.desktop/startup_sentinel
+            test ! -e $HOME/.local/share/applications
+            touch $out
           '';
         }
       );

@@ -19,9 +19,7 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    home.packages = [ cfg.package ];
-    # Route flow:// links (from the browser extension) to the app.
-    xdg.mimeApps.defaultApplications."x-scheme-handler/flow" = "Flow.desktop";
-  };
+  # Flow.desktop declares x-scheme-handler/flow, so flow:// links resolve via the
+  # profile's mimeinfo.cache without touching the user's mimeapps.list.
+  config = lib.mkIf cfg.enable { home.packages = [ cfg.package ]; };
 }

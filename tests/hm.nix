@@ -2,7 +2,7 @@
 #   nix eval --impure --raw --file tests/hm.nix
 let
   self = builtins.getFlake (toString ../.);
-  hm = builtins.getFlake "github:nix-community/home-manager";
+  hm = builtins.getFlake "github:nix-community/home-manager/5a9d300bd619c03857521b50c8877a19dbad7078";
   pkgs = self.inputs.nixpkgs.legacyPackages.${builtins.currentSystem};
   home = hm.lib.homeManagerConfiguration {
     inherit pkgs;
@@ -18,5 +18,5 @@ let
   };
 in
 assert builtins.elem self.packages.${builtins.currentSystem}.default home.config.home.packages;
-assert home.config.xdg.mimeApps.defaultApplications."x-scheme-handler/flow" == [ "Flow.desktop" ];
+assert home.config.xdg.mime.enable;
 home.activationPackage.drvPath

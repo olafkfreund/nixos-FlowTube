@@ -6,6 +6,7 @@
   jq,
   moreutils,
   nodejs_22,
+  nodejs-slim_22,
   openssl,
   pkg-config,
   pnpm_11,
@@ -49,8 +50,13 @@ stdenv.mkDerivation (finalAttrs: {
     hash = "sha256-l07uP65p7EAQ/ztSKBK9ffncY6uG9F/TY0nK4k5rU3s=";
   };
 
-  # The in-app updater would try to replace a read-only store path.
+  # The in-app updater would try to replace a read-only store path. Runtime flow://
+  # registration would write a desktop entry pointing at the store path of the
+  # unwrapped binary; the packaged Flow.desktop already declares the scheme.
   postPatch = ''
+    substituteInPlace src-tauri/src/lib.rs \
+      --replace-fail '#[cfg(any(target_os = "linux", all(debug_assertions, windows)))]' \
+                     '#[cfg(all(debug_assertions, windows))]'
     jq '.plugins.updater.endpoints = [ ] | .bundle.createUpdaterArtifacts = false' \
       src-tauri/tauri.conf.json | sponge src-tauri/tauri.conf.json
   '';
@@ -91,7 +97,7 @@ stdenv.mkDerivation (finalAttrs: {
   # The binary only searches for its BotGuard sidecar next to itself, not in lib/Flow.
   preFixup = ''
     gappsWrapperArgs+=(
-      --set-default FLOW_NODE ${lib.getExe nodejs_22}
+      --set-default FLOW_NODE ${lib.getExe nodejs-slim_22}
       --set-default FLOW_INTEGRITY_SCRIPT $out/lib/Flow/sidecar/integrity.cjs
       --prefix PATH : ${lib.makeBinPath [ gst_all_1.gstreamer ]}
     )
