@@ -49,5 +49,6 @@ environment.systemPackages = [ pkgs.flow-desktop ];
 Bump `version` in `package.nix`, set the three hashes to `lib.fakeHash`, and
 `nix build` three times, copying each `got:` hash in.
 
-CI builds and launch-tests the package on x86_64 and aarch64 Linux, and evaluates
+CI builds and launch-tests the package on x86_64 and aarch64 Linux (the Nix store
+is cached in GitHub Actions, keyed on flake.lock + package.nix), and evaluates
 the Home Manager module.

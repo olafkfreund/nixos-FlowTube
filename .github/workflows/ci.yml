@@ -6,6 +6,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+  actions: write # cache-nix-action purges superseded caches
+
 jobs:
   eval:
     runs-on: ubuntu-latest
@@ -29,5 +33,16 @@ jobs:
         with:
           tool-cache: true
       - uses: cachix/install-nix-action@v31
+      # Caches /nix in GitHub's Actions cache; a hit skips the ~25 min Rust build.
+      - uses: nix-community/cache-nix-action@v7
+        with:
+          primary-key: nix-${{ runner.arch }}-${{ hashFiles('flake.lock', 'package.nix') }}
+          restore-prefixes-first-match: nix-${{ runner.arch }}-
+          gc-max-store-size-linux: 5G
+          purge: true
+          purge-prefixes: nix-${{ runner.arch }}-
+          purge-created: 0
+          purge-primary-key: never
       - name: Build and smoke-test
-        run: nix flake check -L
+        # The result link is a GC root, so the cache's store GC keeps the package.
+        run: nix build -L .#default && nix flake check -L
