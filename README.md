@@ -46,8 +46,14 @@ environment.systemPackages = [ pkgs.flow-desktop ];
 
 ## Updating
 
-Bump `version` in `package.nix`, set the three hashes to `lib.fakeHash`, and
-`nix build` three times, copying each `got:` hash in.
+The daily `Update` workflow compares `package.nix` with upstream's newest release
+(prereleases included, since upstream ships only betas so far). When they differ it
+runs `nix-update`, builds and smoke-tests the result, and opens a PR. Run it by hand
+from the Actions tab, or locally:
+
+```bash
+nix run nixpkgs#nix-update -- --flake flow-desktop --version <new-version>
+```
 
 CI builds and launch-tests the package on x86_64 and aarch64 Linux (the Nix store
 is cached in GitHub Actions, keyed on flake.lock + package.nix), and evaluates
